@@ -10,13 +10,13 @@ public class fishCatcher : MonoBehaviour
         {
             if (!GameManager.instance.Hooked_A_Fish)
             {
-                GameManager.instance.Hooked_A_Fish = true;
-                GameManager.instance.catchedFish = collision.gameObject;
-                collision.gameObject.GetComponent<FishMovements>().enabled = false;
-                collision.gameObject.GetComponent<Animator>().enabled = false;
-                collision.gameObject.tag = "catchedFish";
-
+                GameManager.instance.readyToCatchFish = true;
+                GameManager.instance.fishOnTarget = collision.gameObject;
             }
         }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        GameManager.instance.readyToCatchFish = false;
     }
 }
