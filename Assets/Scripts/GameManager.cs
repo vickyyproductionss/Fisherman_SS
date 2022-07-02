@@ -26,6 +26,27 @@ public class GameManager : MonoBehaviour
     public bool Hooked_A_Fish = false;
     public static GameManager instance;
     public List<GameObject> fishSwimming;
+    public GameObject Counters;
+    int a = 0;
+    int s = 0;
+    int d = 0;
+    int w = 0;
+    int leftShift = 0;
+    int space = 0;
+    bool aDown;
+    bool sDown;
+    bool dDown;
+    bool wDown;
+    bool spacePressed;
+    void updateCounts()
+    {
+        Counters.transform.GetChild(1).GetComponent<TMP_Text>().text = "A : " + a;
+        Counters.transform.GetChild(2).GetComponent<TMP_Text>().text = "S : " + s;
+        Counters.transform.GetChild(3).GetComponent<TMP_Text>().text = "D : " + d;
+        Counters.transform.GetChild(4).GetComponent<TMP_Text>().text = "W : " + w;
+        //Counters.transform.GetChild(5).GetComponent<TMP_Text>().text = "Left Shift : " + leftShift;
+        Counters.transform.GetChild(5).GetComponent<TMP_Text>().text = "Space : " + space;
+    }
     private void Awake()
     {
         if(instance == null)
@@ -38,6 +59,7 @@ public class GameManager : MonoBehaviour
         initialHookPos = RopePoints[1].position;
         StartCoroutine(SpawnFishes());
         updateFishCount(0);
+        updateCounts();
     }
 
     // Update is called once per frame
@@ -46,7 +68,7 @@ public class GameManager : MonoBehaviour
         manageHook();
         renderRope();
         moveCatchedFish();
-        unhookFish();
+        //unhookFish();
         hookTheTargetFish();
     }
     void hookTheTargetFish()
@@ -55,6 +77,8 @@ public class GameManager : MonoBehaviour
         {
             if(Input.GetKeyDown(KeyCode.Space))
             {
+                space++;
+                updateCounts();
                 Hooked_A_Fish = true;
                 GameManager.instance.catchedFish = fishOnTarget;
                 fishOnTarget.GetComponent<FishMovements>().enabled = false;
@@ -63,11 +87,35 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+    
     void moveCatchedFish()
     {
-        if(Hooked_A_Fish)
+        if(Hooked_A_Fish && Input.GetKey(KeyCode.Space))
         {
+            spacePressed = true;
+            //space++;
             catchedFish.transform.position = RopePoints[2].position;
+        }
+        else if(spacePressed)
+        {
+            spacePressed = false;
+            updateCounts();
+            if (RopePoints[1].position.y > bounds[1].transform.position.y && RopePoints[1].position.x > bounds[0].transform.position.x && RopePoints[1].position.x < bounds[2].transform.position.x)
+            {
+                StartCoroutine(moveFishToBucket(catchedFish));
+                catchedFish.transform.localScale = new Vector3(catchedFish.transform.localScale.x / 3, catchedFish.transform.localScale.x / 3, catchedFish.transform.localScale.x / 3);
+                catchedFishCount++;
+                updateFishCount(catchedFishCount);
+                Hooked_A_Fish = false;
+                StartCoroutine(freeHookToInitialPos(initialHookPos, RopePoints[1]));
+            }
+            else
+            {
+                StartCoroutine(showMessage("Fish slipped due to less height.", 2));
+                fishOnTarget.GetComponent<FishMovements>().enabled = true;
+                fishOnTarget.GetComponent<Animator>().enabled = true;
+                Hooked_A_Fish = false;
+            }
         }
     }
     void unhookFish()
@@ -76,6 +124,8 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
+                leftShift++;
+                updateCounts();
                 if (RopePoints[1].position.y > bounds[1].transform.position.y && RopePoints[1].position.x > bounds[0].transform.position.x && RopePoints[1].position.x < bounds[2].transform.position.x)
                 {
                     StartCoroutine(moveFishToBucket(catchedFish));
@@ -87,7 +137,10 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    StartCoroutine(showMessage("Take hook over boat and\npress left shift to collect fish.", 2));
+                    StartCoroutine(showMessage("Take hook over boat and\nrelease space button to collect fish.", 2));
+                    Hooked_A_Fish = false;
+                    fishOnTarget.GetComponent<FishMovements>().enabled = true;
+                    fishOnTarget.GetComponent<Animator>().enabled = true;
                 }
             }
         }
@@ -116,7 +169,7 @@ public class GameManager : MonoBehaviour
         fish.transform.parent = bucket.transform;
         fish.transform.position = Vector3.Lerp(fish.transform.position, bucket.transform.position, Time.deltaTime);
         yield return new WaitForEndOfFrame();
-        if(fish.transform.position != bucket.transform.position)
+        if(Mathf.Abs((fish.transform.position - bucket.transform.position).magnitude) > 0.1f)
         {
             StartCoroutine(moveFishToBucket(catchedFish));
         }
@@ -125,6 +178,12 @@ public class GameManager : MonoBehaviour
     {
         if(Input.GetKey(KeyCode.A))
         {
+            if(!aDown)
+            {
+                aDown = true;
+                a++;
+                updateCounts();
+            }
             Vector3 destination = new Vector3(RopePoints[1].transform.position.x - ropeMoveSpeed * Time.deltaTime, RopePoints[1].transform.position.y, RopePoints[1].transform.position.z);
             float ropeLen1 = Mathf.Abs((RopePoints[1].position - RopePoints[0].position).magnitude);
             float ropeLen2 = Mathf.Abs((destination - RopePoints[0].position).magnitude);
@@ -136,10 +195,32 @@ public class GameManager : MonoBehaviour
             {
                 StartCoroutine(showMessage("maximum rope length", 2));
             }
-            
+        }
+        if(Input.GetKeyUp(KeyCode.A))
+        {
+            aDown = false;
+        }
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            sDown = false;
+        }
+        if (Input.GetKeyUp(KeyCode.D))
+        {
+            dDown = false;
+        }
+        if (Input.GetKeyUp(KeyCode.W))
+        {
+            wDown = false;
         }
         if (Input.GetKey(KeyCode.S))
         {
+            if(!sDown)
+            {
+                sDown = true;
+                s++;
+                updateCounts();
+            }
+            
             Vector3 destination = new Vector3(RopePoints[1].transform.position.x, RopePoints[1].transform.position.y - ropeMoveSpeed * Time.deltaTime, RopePoints[1].transform.position.z);
             float ropeLen1 = Mathf.Abs((RopePoints[1].position - RopePoints[0].position).magnitude);
             float ropeLen2 = Mathf.Abs((destination - RopePoints[0].position).magnitude);
@@ -154,7 +235,13 @@ public class GameManager : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.W))
         {
-            if(RopePoints[1].position.y < RopePoints[0].transform.position.y)
+            if (!wDown)
+            {
+                wDown = true;
+                w++;
+                updateCounts();
+            }
+            if (RopePoints[1].position.y < RopePoints[0].transform.position.y)
             {
                 Vector3 destination = new Vector3(RopePoints[1].transform.position.x, RopePoints[1].transform.position.y + ropeMoveSpeed * Time.deltaTime, RopePoints[1].transform.position.z);
                 float ropeLen1 = Mathf.Abs((RopePoints[1].position - RopePoints[0].position).magnitude);
@@ -175,6 +262,12 @@ public class GameManager : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.D))
         {
+            if (!dDown)
+            {
+                dDown = true;
+                d++;
+                updateCounts();
+            }
             Vector3 destination = new Vector3(RopePoints[1].transform.position.x + ropeMoveSpeed * Time.deltaTime, RopePoints[1].transform.position.y, RopePoints[1].transform.position.z);
             float ropeLen1 = Mathf.Abs((RopePoints[1].position - RopePoints[0].position).magnitude);
             float ropeLen2 = Mathf.Abs((destination - RopePoints[0].position).magnitude);
@@ -196,7 +289,7 @@ public class GameManager : MonoBehaviour
         {
             if(RopePoints[1].position.y > bounds[1].transform.position.y && RopePoints[1].position.x > bounds[0].transform.position.x && RopePoints[1].position.x < bounds[2].transform.position.x)
             {
-                StartCoroutine(showMessage("Press left shift to collect fish.",2));
+                StartCoroutine(showMessage("Release space to drop fish.",2));
             }
         }
     }
