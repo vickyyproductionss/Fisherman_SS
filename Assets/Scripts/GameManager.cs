@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
     public bool Hooked_A_Fish = false;
     public static GameManager instance;
     public List<GameObject> fishSwimming;
+    public AudioSource clickSound;
     public GameObject Counters;
     int a = 0;
     int s = 0;
@@ -77,6 +78,7 @@ public class GameManager : MonoBehaviour
         {
             if(Input.GetKeyDown(KeyCode.Space))
             {
+                clickSound.Play();
                 space++;
                 updateCounts();
                 Hooked_A_Fish = true;
@@ -92,6 +94,7 @@ public class GameManager : MonoBehaviour
     {
         if(Hooked_A_Fish && Input.GetKey(KeyCode.Space))
         {
+            clickSound.Play();
             spacePressed = true;
             //space++;
             catchedFish.transform.position = RopePoints[2].position;
@@ -124,6 +127,7 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
+                clickSound.Play();
                 leftShift++;
                 updateCounts();
                 if (RopePoints[1].position.y > bounds[1].transform.position.y && RopePoints[1].position.x > bounds[0].transform.position.x && RopePoints[1].position.x < bounds[2].transform.position.x)
@@ -198,18 +202,22 @@ public class GameManager : MonoBehaviour
         }
         if(Input.GetKeyUp(KeyCode.A))
         {
+            clickSound.Play();
             aDown = false;
         }
         if (Input.GetKeyUp(KeyCode.S))
         {
+            clickSound.Play();
             sDown = false;
         }
         if (Input.GetKeyUp(KeyCode.D))
         {
+            clickSound.Play();
             dDown = false;
         }
         if (Input.GetKeyUp(KeyCode.W))
         {
+            clickSound.Play();
             wDown = false;
         }
         if (Input.GetKey(KeyCode.S))
